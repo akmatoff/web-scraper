@@ -1,0 +1,4 @@
+/node_modules
+poetry.lock
+pyproject.toml
+geckodriver.log
