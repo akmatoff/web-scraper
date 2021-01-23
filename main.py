@@ -11,43 +11,57 @@ headers = {
   'User-Agent': ua.ie
 }
 
+url = 'https://www.leathercountrybags.com/'
+
 browser = webdriver.Firefox()
 browser.get('https://www.leathercountrybags.com/category.cfm')
 
 # Send request to the website
-response = requests.get('https://www.leathercountrybags.com/category.cfm?categoriaid_rw=wholesale-handbags&ord=5', headers=headers)
+# response = requests.get('https://www.leathercountrybags.com/category.cfm?categoriaid_rw=wholesale-handbags&ord=5', headers=headers)
 
 # print(response.text)
 
 # Initialize beautiful soup and parse the response text
-soup = BeautifulSoup(response.text, 'html.parser')
+# soup = BeautifulSoup(response.text, 'html.parser')
 
-products = soup.find_all(class_='btn btn-sm btn-info')
+# products = soup.find_all(class_='btn btn-sm btn-info')
 
-i = 0
+# i = 0
 
-items = []
+# items = []
 
 # Loop through each product
-for product in products:
+# for product in products:
   # Get the links for detailed info
-  item = product['onclick'].split(',')[2].replace("'", "").replace(";", "")
-  items.append(item)
+  # item = product['onclick'].split(',')[2].replace("'", "").replace(";", "").replace(')', '')
+  # items.append(item)
+  # print(item)
 
 # print(items)
 
-for item in items:
+detail = requests.get(url + 'item.cfm?modale=1&articoloID=10520', headers=headers)
 
-  if i <= 3:
-    detail = requests.get('https://www.leathercountrybags.com/' + item, headers=headers)
+soup_dt = BeautifulSoup(detail.text, 'lxml')
 
-    soup_dt = BeautifulSoup(detail.text, 'html.parser')
+title = soup_dt.find('h3').find('span').get_text()
+descs = soup_dt.find(class_='col-md-7').select('p')
+images = soup_dt.select('img.item-thumbnail')
+ul = soup_dt.find('ul').select('li')
 
-    p = soup_dt.find_all('p')
+# Loop through each image and save the files
+for image in images:
+  image_link = url + image.get('src')
+  img_request = requests.get(image_link, 'lxml')
 
-    print(p)
-    
-    sleep_time = randint(2, 15) # random numbers for waiting time
-    sleep(sleep_time) # pause the loop for some time
+  with open('images/' + image.get('src').split('/')[3], 'wb') as f:
+    f.write(img_request.content)
 
-    i += 1
+  sleep(randint(2, 7))
+
+print(title)
+# print(descs)
+
+# Get additional description
+for el in ul:
+  print(el.text)
+  
