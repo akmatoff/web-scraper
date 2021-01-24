@@ -4,6 +4,8 @@ from selenium import webdriver
 from fake_useragent import UserAgent
 from time import sleep
 from random import randint
+from translate import Translator
+import lxml
 
 ua = UserAgent()
 
@@ -13,8 +15,10 @@ headers = {
 
 url = 'https://www.leathercountrybags.com/'
 
-browser = webdriver.Firefox()
-browser.get('https://www.leathercountrybags.com/category.cfm')
+# browser = webdriver.Firefox()
+# browser.get('https://www.leathercountrybags.com/category.cfm')
+
+translator = Translator(to_lang='ru')
 
 # Send request to the website
 # response = requests.get('https://www.leathercountrybags.com/category.cfm?categoriaid_rw=wholesale-handbags&ord=5', headers=headers)
@@ -43,8 +47,9 @@ detail = requests.get(url + 'item.cfm?modale=1&articoloID=10520', headers=header
 
 soup_dt = BeautifulSoup(detail.text, 'lxml')
 
-title = soup_dt.find('h3').find('span').get_text()
+title = translator.translate(soup_dt.find('h3').find('span').get_text())
 descs = soup_dt.find(class_='col-md-7').select('p')
+description = []
 images = soup_dt.select('img.item-thumbnail')
 ul = soup_dt.find('ul').select('li')
 
@@ -59,9 +64,9 @@ for image in images:
   sleep(randint(2, 7))
 
 print(title)
-# print(descs)
+print(descs)
 
 # Get additional description
 for el in ul:
-  print(el.text)
-  
+  text = translator.translate(el.text)
+  print(text)

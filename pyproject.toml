@@ -9,6 +9,8 @@ python = "^3.8"
 bs4 = "^0.0.1"
 fake-useragent = "^0.1.11"
 selenium = "^3.141.0"
+lxml = "^4.6.2"
+googletrans = "^3.0.0"
 
 [tool.poetry.dev-dependencies]
 
