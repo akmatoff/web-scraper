@@ -1,4 +1,6 @@
 /node_modules
+/env
+/images
 poetry.lock
 pyproject.toml
 geckodriver.log

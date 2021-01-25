@@ -1,72 +1,64 @@
 from bs4 import BeautifulSoup
 import requests
-from selenium import webdriver
 from fake_useragent import UserAgent
 from time import sleep
 from random import randint
-from translate import Translator
-import lxml
+from googletrans import Translator
 
 ua = UserAgent()
+translator = Translator()
+url = 'https://www.leathercountrybags.com/'
 
 headers = {
   'User-Agent': ua.ie
 }
 
-url = 'https://www.leathercountrybags.com/'
+def scrape_data():
+  # Send request to the website
+  response = requests.get(url + 'category.cfm?categoriaid_rw=wholesale-handbags&ord=5', headers=headers)
 
-# browser = webdriver.Firefox()
-# browser.get('https://www.leathercountrybags.com/category.cfm')
+  # Initialize beautiful soup and parse the response text
+  soup = BeautifulSoup(response.text, 'lxml')
 
-translator = Translator(to_lang='ru')
+  products = soup.find_all(class_='btn btn-sm btn-info')
 
-# Send request to the website
-# response = requests.get('https://www.leathercountrybags.com/category.cfm?categoriaid_rw=wholesale-handbags&ord=5', headers=headers)
+  items = []
 
-# print(response.text)
+  # Loop through each product
+  for product in products:
+    # Get the links for detailed info
+    item = product['onclick'].split(',')[2].replace("'", "").replace(";", "").replace(')', '')
+    items.append(item)
 
-# Initialize beautiful soup and parse the response text
-# soup = BeautifulSoup(response.text, 'html.parser')
+  for item in items: 
 
-# products = soup.find_all(class_='btn btn-sm btn-info')
+    detail = requests.get(url + item, headers=headers)
 
-# i = 0
+    soup_dt = BeautifulSoup(detail.text, 'lxml')
 
-# items = []
+    title = translator.translate(soup_dt.find('h3').find('span').get_text(), dest='ru')
+    descs = soup_dt.find(class_='col-md-7').select('p')
+    images = soup_dt.select('img.item-thumbnail')
+    ul = soup_dt.find('ul').select('li')
 
-# Loop through each product
-# for product in products:
-  # Get the links for detailed info
-  # item = product['onclick'].split(',')[2].replace("'", "").replace(";", "").replace(')', '')
-  # items.append(item)
-  # print(item)
+    print(title)
+    # print(descs)
 
-# print(items)
+    # Get additional description
+    for el in ul:
+      text = translator.translate(el.text, dest='ru')
+      print(text)
 
-detail = requests.get(url + 'item.cfm?modale=1&articoloID=10520', headers=headers)
+    # Loop through each image and save the files
+    for image in images:
+      image_link = url + image.get('src')
+      img_request = requests.get(image_link, 'lxml')
 
-soup_dt = BeautifulSoup(detail.text, 'lxml')
+      with open('images/' + image.get('src').split('/')[3], 'wb') as f:
+        f.write(img_request.content)
 
-title = translator.translate(soup_dt.find('h3').find('span').get_text())
-descs = soup_dt.find(class_='col-md-7').select('p')
-description = []
-images = soup_dt.select('img.item-thumbnail')
-ul = soup_dt.find('ul').select('li')
+      sleep(randint(2, 7))
 
-# Loop through each image and save the files
-for image in images:
-  image_link = url + image.get('src')
-  img_request = requests.get(image_link, 'lxml')
+    sleep(randint(3, 10))
 
-  with open('images/' + image.get('src').split('/')[3], 'wb') as f:
-    f.write(img_request.content)
-
-  sleep(randint(2, 7))
-
-print(title)
-print(descs)
-
-# Get additional description
-for el in ul:
-  text = translator.translate(el.text)
-  print(text)
+scrape_data()
