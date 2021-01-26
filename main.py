@@ -4,6 +4,7 @@ from fake_useragent import UserAgent
 from time import sleep
 from random import randint
 from googletrans import Translator
+from csv import writer
 
 ua = UserAgent()
 translator = Translator()
@@ -36,29 +37,39 @@ def scrape_data():
 
     soup_dt = BeautifulSoup(detail.text, 'lxml')
 
-    title = translator.translate(soup_dt.find('h3').find('span').get_text(), dest='ru')
-    descs = soup_dt.find(class_='col-md-7').select('p')
+    title = translator.translate(soup_dt.find('h3').find('span').get_text(), dest='ru').text
+    descs = soup_dt.find(class_='col-md-7').select('p', attrs={'color': '#2C3E50'})
+    description = []
+    pics = []
     images = soup_dt.select('img.item-thumbnail')
     ul = soup_dt.find('ul').select('li')
 
-    print(title)
-    # print(descs)
+    # Get each p and append to the list
+    for desc in descs:
+      description.append(desc.text) 
 
     # Get additional description
     for el in ul:
-      text = translator.translate(el.text, dest='ru')
-      print(text)
+      text = translator.translate(el.text, dest='ru').text
+      description.append(text)
 
     # Loop through each image and save the files
     for image in images:
       image_link = url + image.get('src')
-      img_request = requests.get(image_link, 'lxml')
+      img_request = requests.get(image_link, 'lxml')  
+      imgname = image.get('src').split('/')[3]
+      pics.append('/images/' + imgname)
 
-      with open('images/' + image.get('src').split('/')[3], 'wb') as f:
+      with open('images/' + imgname, 'wb') as f:
         f.write(img_request.content)
 
       sleep(randint(2, 7))
 
     sleep(randint(3, 10))
+
+    with open('products.csv', 'a') as csv_file:
+      csv_writer = writer(csv_file)
+      # Write the received information to a csv file
+      csv_writer.writerow([title, '.'.join(description), '.'.join(pics)])
 
 scrape_data()
