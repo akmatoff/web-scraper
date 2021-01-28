@@ -33,20 +33,27 @@ def scrape_data():
 
   for item in items: 
 
+    print('Looping through each item...')
     detail = requests.get(url + item, headers=headers)
 
     soup_dt = BeautifulSoup(detail.text, 'lxml')
 
     title = translator.translate(soup_dt.find('h3').find('span').get_text(), dest='ru').text
-    descs = soup_dt.find(class_='col-md-7').select('p', attrs={'color': '#2C3E50'})
+    descs = soup_dt.find(class_='col-md-7').find_all('p')
+
     description = []
     pics = []
     images = soup_dt.select('img.item-thumbnail')
     ul = soup_dt.find('ul').select('li')
 
-    # Get each p and append to the list
-    for desc in descs:
-      description.append(desc.text) 
+    i = 2
+
+    # Loop through specific range of elements in description
+    while i < len(descs) - 4:
+      description.append(translator.translate(descs[i].text, dest='ru').text)
+      i += 1
+
+    print('Description:', description)
 
     # Get additional description
     for el in ul:
@@ -63,13 +70,16 @@ def scrape_data():
       with open('images/' + imgname, 'wb') as f:
         f.write(img_request.content)
 
+      print('Saving image...')
+
       sleep(randint(2, 7))
 
     sleep(randint(3, 10))
 
-    with open('products.csv', 'a') as csv_file:
+    with open('products.csv', 'a', encoding='utf-8') as csv_file:
       csv_writer = writer(csv_file)
       # Write the received information to a csv file
-      csv_writer.writerow([title, '.'.join(description), '.'.join(pics)])
+      csv_writer.writerow([title, '|'.join(description), '|'.join(pics)])
+      print('Writing csv file...')
 
 scrape_data()
