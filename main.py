@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup
+from selenium import webdriver
 import requests
 from fake_useragent import UserAgent
 from time import sleep
@@ -15,11 +16,17 @@ headers = {
 }
 
 def scrape_data():
+  driver = webdriver.Firefox(executable_path='geckodriver.exe')
+
   # Send request to the website
-  response = requests.get(url + 'category.cfm?categoriaid_rw=wholesale-handbags&ord=5', headers=headers)
+  driver.get(url + 'category.cfm?categoriaid_rw=wholesale-handbags&ord=5')
+
+  # Get the page as text
+  content = driver.page_source
 
   # Initialize beautiful soup and parse the response text
-  soup = BeautifulSoup(response.text, 'lxml')
+  soup = BeautifulSoup(content, 'lxml')
+  driver.quit()
 
   products = soup.find_all(class_='btn btn-sm btn-info')
 
