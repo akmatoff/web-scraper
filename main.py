@@ -1,10 +1,9 @@
 from bs4 import BeautifulSoup
 import requests
 from fake_useragent import UserAgent
-from time import sleep
 from random import randint
 from googletrans import Translator
-from csv import writer
+import csv
 
 ua = UserAgent()
 translator = Translator()
@@ -13,6 +12,20 @@ url = 'https://www.leathercountrybags.com/'
 headers = {
   'User-Agent': ua.ie
 }
+
+# Function to write csv file
+def write_csv(row):
+  with open('products.csv', 'a', encoding='utf-8') as csv_file:
+    csv_writer = csv.writer(csv_file)
+    # Write the received information to a csv file
+    csv_writer.writerow(row)
+    print('Writing csv file...')
+
+def check_data(data):
+  with open('products.csv', newline='') as csv_file:
+    reader = csv.reader(csv_file, delimiter=',')
+    if data in reader:
+      return True
 
 def scrape_data():
 
@@ -38,7 +51,7 @@ def scrape_data():
 
     # Loop through each image of a product
     for image in images:
-      print('Saving images...')
+      print('Saving image...')
 
       img = image['data-original']
       img_link = url + img
@@ -50,12 +63,10 @@ def scrape_data():
       with open('images/' + imgname, 'wb') as f:
         f.write(img_request.content)
 
-  
-    with open('products.csv', 'a', encoding='utf-8') as csv_file:
-        csv_writer = writer(csv_file)
-        # Write the received information to a csv file
-        csv_writer.writerow([title, description, '|'.join(pics)])
-        print('Writing csv file...')
+    # If row doesn't exist
+    if not check_data([title, description, '|'.join(pics)]):
+      print('True')
+      write_csv([title, description, '|'.join(pics)]) # Call write csv
     
     product_num += 1
 
