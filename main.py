@@ -16,21 +16,24 @@ headers = {
 
 # Function to write csv file
 def write_csv(row):
-  with open('products.csv', 'a', encoding='utf-8') as csv_file:
+  with open('products.csv', 'a', encoding='utf-8', newline='') as csv_file:
     csv_writer = csv.writer(csv_file)
     # Write the received information to a csv file
     csv_writer.writerow(row)
     print('Writing csv file...')
 
+# Function to check if data already exists in the csv file
 def check_data(data):
-  with open('products.csv', newline='', encoding='utf-8') as csv_file:
+  with open('products.csv', encoding='utf-8', newline='') as csv_file:
     reader = csv.reader(csv_file, delimiter=',')
-    
-    if data in reader:
-      return True
-    else:
-      return False
+    data_exists = False
 
+    for row in reader:
+      if data in row[0]:
+        data_exists = True
+
+  return data_exists
+        
 def scrape_data():
 
   # Send request to the website
@@ -48,31 +51,35 @@ def scrape_data():
   for product in products:
     print('Scraping product number ' + str(product_num))
 
+    product_id = product.find('a').text[0:7].replace('"', '').replace(' ', '').replace('.', '')
     title = translator.translate(product.find('span', attrs={'class': None}).text)
     images = product.select('img.lazy')
     description = translator.translate(product.find_all('p')[2].text)
     pics = []
 
-    # Loop through each image of a product
-    for image in images:
-      print('Saving image...')
-
-      img = image['data-original']
-      img_link = url + img
-      img_request = requests.get(img_link, headers)  
-      imgname = img.split('/')[3]
-      pics.append(imgname)
-
-      # Save images
-      with open('images/' + imgname, 'wb') as f:
-        f.write(img_request.content)
-
+    print('Product ID', product_id)
     
-    exists = check_data([title, description, '|'.join(pics)])
+    exists = check_data(product_id)
 
     # If row doesn't exist
     if not exists:
-      write_csv([title, description, '|'.join(pics)]) # Call write csv
+
+      # Loop through each image of a product
+      for image in images:
+        print('Saving image...')
+
+        img = image['data-original']
+        img_link = url + img
+        img_request = requests.get(img_link, headers)  
+        imgname = img.split('/')[3]
+        pics.append(imgname)
+
+        # Save images
+        with open('images/' + imgname, 'wb') as f:
+          f.write(img_request.content)
+
+
+      write_csv([product_id, title, description, '|'.join(pics)]) # Call write csv
     
     product_num += 1
 
