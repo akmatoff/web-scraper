@@ -1,11 +1,7 @@
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 from deep_translator import GoogleTranslator
-from dotenv import load_dotenv
-from instapy import InstaPy
-import requests, csv, os
-
-load_dotenv()
+import requests, csv
 
 ua = UserAgent()
 translator = GoogleTranslator(source='auto', target='ru')
@@ -87,5 +83,3 @@ def scrape_data():
 
 scrape_data()
 
-def poster():
-  instapy = InstaPy(username=os.getenv('USERNAME'), password=os.getenv('PASSWORD'))
