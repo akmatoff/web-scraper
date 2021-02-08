@@ -25,7 +25,7 @@ with open('products.csv', encoding='utf-8', newline='') as csv_file:
             img.resize((1080, 1080))
             img.save('images/' + image, 'JPEG', quality=100)
 
-    #     bot.upload_photo('images/' + image, caption)
+            bot.upload_photo('images/' + image)
 
         with open('posted.csv', 'a', encoding='utf-8', newline='') as csvf:
             writer = csv.writer(csvf)
